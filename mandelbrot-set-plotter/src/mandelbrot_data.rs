@@ -8,6 +8,10 @@ pub enum ColorMode {
     Trippy,
     #[strum(serialize = "Blue Green Red")]
     Bgr,
+    #[strum(serialize = "Neon Zebra")]
+    Zebra,
+    #[strum(serialize = "Electric Fire")]
+    Electric,
 }
 
 pub struct MandelbrotData {
@@ -60,6 +64,8 @@ impl MandelbrotData {
                 (pixel[0], pixel[1], pixel[2]) = match self.color_mode {
                     ColorMode::Trippy => MandelbrotData::coloring_trippy(iter, max_iter),
                     ColorMode::Bgr => MandelbrotData::coloring_bgr(iter, max_iter),
+                    ColorMode::Zebra => MandelbrotData::coloring_zebra(iter, max_iter),
+                    ColorMode::Electric => MandelbrotData::coloring_electric(iter, max_iter),
                 };
 
                 pixel[3] = 255;
@@ -138,6 +144,31 @@ impl MandelbrotData {
             let g = (15.0 * (1.0 - t) * (1.0 - t) * t * t * 255.0) as u8;
             let b = (8.5 * (1.0 - t) * (1.0 - t) * (1.0 - t) * t * 255.0) as u8;
 
+            (r, g, b)
+        }
+    }
+
+    fn coloring_zebra(iter: u32, max_iter: u32) -> (u8, u8, u8) {
+        if iter == max_iter {
+            (0, 0, 0)
+        } else {
+            // alternate between stark magenta and black based on iteration depth
+            if iter % 4 < 2 {
+                (255, 0, 255)
+            } else {
+                (20, 20, 20) // dark gray
+            }
+        }
+    }
+
+    fn coloring_electric(iter: u32, max_iter: u32) -> (u8, u8, u8) {
+        if iter == max_iter {
+            (0, 0, 0)
+        } else {
+            let t = iter as f64 / max_iter as f64;
+            let r = (t.sqrt() * 255.0) as u8;
+            let g = ((t * 2.0).powi(2) * 255.0).min(255.0) as u8;
+            let b = ((t * 3.0).powi(3) * 255.0).min(255.0) as u8;
             (r, g, b)
         }
     }
