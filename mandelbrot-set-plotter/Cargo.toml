@@ -6,3 +6,4 @@ edition = "2024"
 [dependencies]
 eframe = "0.33.3"
 rayon = "1.11.0"
+strum = { version = "0.28.0", features = ["derive"] }

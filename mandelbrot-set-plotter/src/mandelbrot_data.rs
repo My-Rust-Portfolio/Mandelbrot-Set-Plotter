@@ -1,10 +1,20 @@
 use eframe::egui::Vec2;
 use rayon::prelude::*;
+use strum::{Display, EnumIter};
+
+#[derive(PartialEq, Clone, Copy, EnumIter, Display)]
+pub enum ColorMode {
+    #[strum(serialize = "Trippy")]
+    Trippy,
+    #[strum(serialize = "Blue Green Red")]
+    Bgr,
+}
 
 pub struct MandelbrotData {
     center_re: f64,
     center_im: f64,
     zoom: f64,
+    color_mode: ColorMode,
 }
 
 impl MandelbrotData {
@@ -13,6 +23,7 @@ impl MandelbrotData {
             center_re: -0.5,
             center_im: 0.0,
             zoom: 3.5,
+            color_mode: ColorMode::Trippy,
         }
     }
 
@@ -46,11 +57,19 @@ impl MandelbrotData {
                     max_iter,
                 );
 
-                (pixel[0], pixel[1], pixel[2]) = MandelbrotData::coloring_trippy(iter, max_iter);
+                (pixel[0], pixel[1], pixel[2]) = match self.color_mode {
+                    ColorMode::Trippy => MandelbrotData::coloring_trippy(iter, max_iter),
+                    ColorMode::Bgr => MandelbrotData::coloring_bgr(iter, max_iter),
+                };
+
                 pixel[3] = 255;
             });
 
         pixels
+    }
+
+    pub fn get_color_mode(&mut self) -> &mut ColorMode {
+        &mut self.color_mode
     }
 }
 

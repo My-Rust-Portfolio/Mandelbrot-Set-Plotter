@@ -50,7 +50,7 @@ impl eframe::App for MandelbrotApp {
             let height = size.y as usize;
 
             let (rect, response) = ui.allocate_exact_size(size, egui::Sense::click_and_drag());
-            let mut update = self.view.is_texture_none();
+            let mut update = self.view.needs_update();
 
             if self.last_width != width || self.last_height != height {
                 update = true;
@@ -68,6 +68,13 @@ impl eframe::App for MandelbrotApp {
 
             if scroll != 0.0 {
                 self.data.handle_zoom(scroll);
+                update = true;
+            }
+
+            if self
+                .view
+                .draw_color_settings_changed(ctx, self.data.get_color_mode())
+            {
                 update = true;
             }
 

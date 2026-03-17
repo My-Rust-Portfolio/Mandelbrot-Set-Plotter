@@ -1,4 +1,6 @@
+use crate::mandelbrot_data::ColorMode;
 use eframe::egui;
+use strum::IntoEnumIterator;
 
 pub struct MandelbrotView {
     texture: Option<egui::TextureHandle>,
@@ -9,7 +11,7 @@ impl MandelbrotView {
         Self { texture: None }
     }
 
-    pub fn is_texture_none(&self) -> bool {
+    pub fn needs_update(&self) -> bool {
         self.texture.is_none()
     }
 
@@ -39,5 +41,32 @@ impl MandelbrotView {
                 egui::Color32::WHITE,
             );
         }
+    }
+
+    // draws settings, returns true if color option is changed
+    pub fn draw_color_settings_changed(
+        &self,
+        ctx: &egui::Context,
+        current_mode: &mut ColorMode,
+    ) -> bool {
+        let mut settings_changed = false;
+
+        egui::Window::new("Color Settings")
+            .resizable(false)
+            .show(ctx, |ui| {
+                ui.heading("Color Palette");
+                ui.separator();
+
+                for mode in ColorMode::iter() {
+                    if ui
+                        .radio_value(current_mode, mode, mode.to_string())
+                        .changed()
+                    {
+                        settings_changed = true;
+                    }
+                }
+            });
+
+        settings_changed
     }
 }
