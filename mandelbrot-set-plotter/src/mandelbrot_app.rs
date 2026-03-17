@@ -11,6 +11,7 @@ pub struct MandelbrotApp {
     view: MandelbrotView,
     last_width: usize,
     last_height: usize,
+    last_gen_time: f64,
 }
 
 impl MandelbrotApp {
@@ -20,6 +21,7 @@ impl MandelbrotApp {
             view: MandelbrotView::new(),
             last_width: 0,
             last_height: 0,
+            last_gen_time: 0_f64,
         }
     }
 }
@@ -85,15 +87,41 @@ impl eframe::App for MandelbrotApp {
             }
 
             if update {
-                self.view.update_texture(
-                    width,
-                    height,
-                    &self.data.generate_pixel_buffer(width, height, time),
-                    ctx,
-                );
+                let start_time = std::time::Instant::now();
+                let buffer = self.data.generate_pixel_buffer(width, height, time);
+                self.last_gen_time = start_time.elapsed().as_secs_f64() * 1000.0;
+                self.view.update_texture(width, height, &buffer, ctx);
             }
 
             self.view.draw(ui, &rect);
+            self.draw_profiling(ui);
         });
+    }
+}
+
+impl MandelbrotApp {
+    fn draw_profiling(&self, ui: &mut egui::Ui) -> egui::Response {
+        const TEXT_WIDTH: f32 = 200.0;
+        const TEXT_HEIGHT: f32 = 50.0;
+
+        ui.put(
+            // Position text at the top-left corner with a small margin
+            egui::Rect::from_min_size(
+                egui::pos2(
+                    self.last_width as f32 - TEXT_WIDTH,
+                    self.last_height as f32 - TEXT_HEIGHT,
+                ),
+                egui::vec2(TEXT_WIDTH, TEXT_HEIGHT),
+            ),
+            egui::Label::new(
+                egui::RichText::new(format!(
+                    "Render Time: {:.2} ms\nResolution: {}x{}",
+                    self.last_gen_time, self.last_width, self.last_height
+                ))
+                .color(egui::Color32::WHITE)
+                .background_color(egui::Color32::from_black_alpha(150))
+                .heading(),
+            ),
+        )
     }
 }
