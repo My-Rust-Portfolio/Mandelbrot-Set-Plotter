@@ -52,6 +52,12 @@ impl eframe::App for MandelbrotApp {
             let (rect, response) = ui.allocate_exact_size(size, egui::Sense::click_and_drag());
             let mut update = self.view.needs_update();
 
+            let time = ctx.input(|i| i.time);
+            if self.data.is_animated() {
+                update = true;
+                ctx.request_repaint();
+            }
+
             if self.last_width != width || self.last_height != height {
                 update = true;
                 self.last_width = width;
@@ -82,7 +88,7 @@ impl eframe::App for MandelbrotApp {
                 self.view.update_texture(
                     width,
                     height,
-                    &self.data.generate_pixel_buffer(width, height),
+                    &self.data.generate_pixel_buffer(width, height, time),
                     ctx,
                 );
             }

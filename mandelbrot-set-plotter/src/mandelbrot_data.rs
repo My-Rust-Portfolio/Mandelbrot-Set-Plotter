@@ -12,6 +12,8 @@ pub enum ColorMode {
     Zebra,
     #[strum(serialize = "Electric Fire")]
     Electric,
+    #[strum(serialize = "Time Warp (Animated)")]
+    TimeWarp,
 }
 
 pub struct MandelbrotData {
@@ -42,7 +44,7 @@ impl MandelbrotData {
         self.zoom *= if scroll > 0.0 { 0.9 } else { 1.1 };
     }
 
-    pub fn generate_pixel_buffer(&self, width: usize, height: usize) -> Vec<u8> {
+    pub fn generate_pixel_buffer(&self, width: usize, height: usize, time: f64) -> Vec<u8> {
         let mut pixels = vec![0_u8; width * height * 4];
         let max_iter = 255;
 
@@ -66,6 +68,7 @@ impl MandelbrotData {
                     ColorMode::Bgr => MandelbrotData::coloring_bgr(iter, max_iter),
                     ColorMode::Zebra => MandelbrotData::coloring_zebra(iter, max_iter),
                     ColorMode::Electric => MandelbrotData::coloring_electric(iter, max_iter),
+                    ColorMode::TimeWarp => MandelbrotData::coloring_time_warp(iter, max_iter, time),
                 };
 
                 pixel[3] = 255;
@@ -76,6 +79,13 @@ impl MandelbrotData {
 
     pub fn get_color_mode(&mut self) -> &mut ColorMode {
         &mut self.color_mode
+    }
+
+    pub fn is_animated(&self) -> bool {
+        match self.color_mode {
+            ColorMode::TimeWarp => true,
+            _ => false,
+        }
     }
 }
 
@@ -169,6 +179,18 @@ impl MandelbrotData {
             let r = (t.sqrt() * 255.0) as u8;
             let g = ((t * 2.0).powi(2) * 255.0).min(255.0) as u8;
             let b = ((t * 3.0).powi(3) * 255.0).min(255.0) as u8;
+            (r, g, b)
+        }
+    }
+
+    fn coloring_time_warp(iter: u32, max_iter: u32, time: f64) -> (u8, u8, u8) {
+        if iter == max_iter {
+            (0, 0, 0)
+        } else {
+            let t = iter as f64 * 0.05;
+            let r = ((t + time * 3.0).sin() * 127.5 + 127.5) as u8;
+            let g = ((t + time * 4.0 + 2.0).sin() * 127.5 + 127.5) as u8;
+            let b = ((t + time * 5.0 + 4.0).sin() * 127.5 + 127.5) as u8;
             (r, g, b)
         }
     }
